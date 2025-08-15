@@ -1,1 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Associations sportives – Nyons (carte par catégories)</title>
+<meta name="description" content="Carte des associations sportives de Nyons avec catégories et couleurs : arts martiaux, raquettes, boules, sports co, vélo, nature… + recherche et filtres.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.awesome-markers@2.0.5/dist/leaflet.awesome-markers.css">
+<style>
+  body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; line-height:1.55; color:#1f2937; }
+  header { padding: 18px 16px 6px; background:#f8fafc; border-bottom:1px solid #e5e7eb; }
+  header h1 { margin:0 0 6px; font-size:22px; }
+  header p { margin:4px 0; max-width:940px; }
+  #toolbar { padding:10px 12px; background:#f7f7f7; border-bottom:1px solid #e6e6e6; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  #search { width:280px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; }
+  #map { height: 66vh; }
+  #count { font-size:14px; color:#555; margin-left:auto; }
+  .filters { display:flex; flex-wrap:wrap; gap:8px 14px; }
+  .legend { display:flex; flex-wrap:wrap; gap:10px 14px; padding:10px 12px; font-size:14px; border-top:1px solid #e6e6e6; background:#fafafa; }
+  .legend .item { display:flex; align-items:center; gap:6px; }
+  .marker-dot { display:inline-block; width:12px; height:12px; border-radius:50%; vertical-align:middle; }
+  .cat { font-size:14px; }
+  .leaflet-popup-content a { color:#0b66c3; text-decoration:none; }
+  .leaflet-popup-content a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Associations sportives de Nyons – par catégories</h1>
+    <p>Les marqueurs sont colorés par type de pratique (arts martiaux, raquettes, boules, sports co, plein air…). Utilisez la recherche et les filtres pour trouver rapidement votre club. Au même endroit, les points se regroupent : cliquez pour les « éclater ».</p>
+  </header>
 
+  <div id="toolbar">
+    <input id="search" placeholder="Rechercher (nom, discipline, adresse, contact)…" />
+    <div class="filters" id="filters"></div>
+    <span id="count"></span>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="legend" id="legend"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet.awesome-markers@2.0.5/dist/leaflet.awesome-markers.js"></script>
+  <script>
+  const data = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Les Tontons Riders", "description": "Glisse urbaine & VTT (4 Seasons Bike Park : descente, enduro). — 4 Seasons Bike Park, 26110 Nyons — 📞 07 84 18 51 86 / ✉️ tontonsriders26@gmail.com", "Nom": "Les Tontons Riders", "Adresse": "4 Seasons Bike Park, 26110 Nyons", "Téléphone": "07 84 18 51 86", "Email": "tontonsriders26@gmail.com", "Site": "https://www.4seasonsbikepark.fr", "GPS_precision": "approx_centroid:nyons", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "VTT Loisirs", "description": "Entretien/création circuits FFCT, sorties VTT. — Nyons et Baronnies — 📞 06 76 99 78 40 / ✉️ vttnyons@sfr.fr", "Nom": "VTT Loisirs", "Adresse": "Nyons et Baronnies", "Téléphone": "06 76 99 78 40", "Email": "vttnyons@sfr.fr", "Site": "http://veloclubnyons.canalblog.com/", "GPS_precision": "approx_centroid:nyons", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.03611, 44.33056]}, "properties": {"name": "Échanges Sports Nature", "description": "Tir à l’arc, parcours nature, sorties (escalade, rando, raquettes, ski de fond). — Terrain tir à l’arc – RD190 direction Valréas, 26110 Vinsobres — 📞 06 76 02 28 77 / ✉️ echangesportsnature@orange.fr", "Nom": "Échanges Sports Nature", "Adresse": "Terrain tir à l’arc – RD190 direction Valréas, 26110 Vinsobres", "Téléphone": "06 76 02 28 77", "Email": "echangesportsnature@orange.fr", "Site": "https://echangesportsnature.wordpress.com/", "GPS_precision": "approx_centroid:vinsobres", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13548, 44.3547]}, "properties": {"name": "Nyons Athlétic Club (NAC)", "description": "Athlétisme piste & cross (jeunes < 18 ans). — Stade Pierre Jullien, Route de Mirabel, 26110 Nyons — 📞 06 64 78 04 03 / ✉️ nac26110@gmail.com", "Nom": "Nyons Athlétic Club (NAC)", "Adresse": "Stade Pierre Jullien, Route de Mirabel, 26110 Nyons", "Téléphone": "06 64 78 04 03", "Email": "nac26110@gmail.com", "Site": "https://www.facebook.com/nac26110", "GPS_precision": "exact_osm_visual", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Nyons Aïkido", "description": "Aïkido Kobayashi-Ryu ; Jodo Shindo Muso Ryu. — Maison des Sports / Dojo Île Verte / Dojo Cité Scolaire, 26110 Nyons — 📞 06 58 76 01 32 / ✉️ nyonsaikido@gmail.com", "Nom": "Nyons Aïkido", "Adresse": "Maison des Sports / Dojo Île Verte / Dojo Cité Scolaire, 26110 Nyons", "Téléphone": "06 58 76 01 32", "Email": "nyonsaikido@gmail.com", "Site": "https://nyonsaikido.fr", "GPS_precision": "exact_osm_visual", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Boxe Française des Baronnies", "description": "Savate & self-défense. — Maison des Sports, 26 allée des Sports, 26110 Nyons — 📞 06 11 11 53 20 / ✉️ leydier6@aol.com", "Nom": "Boxe Française des Baronnies", "Adresse": "Maison des Sports, 26 allée des Sports, 26110 Nyons", "Téléphone": "06 11 11 53 20", "Email": "leydier6@aol.com", "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Les Cent Ciels", "description": "Yoga (approche douce), cours collectifs/individuels. — 17 place du Dr Bourdongle, 26110 Nyons — 📞 06 10 35 30 07 / ✉️ rigalv26@gmail.com", "Nom": "Les Cent Ciels", "Adresse": "17 place du Dr Bourdongle, 26110 Nyons", "Téléphone": "06 10 35 30 07", "Email": "rigalv26@gmail.com", "Site": NaN, "GPS_precision": "approx_centroid:nyons", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Moto Club des Oliviers", "description": "Trial, Enduro, MX, Vitesse. Organisation championnat régional de Trial. — 39 rue Camille Bréchet, 26110 Nyons — 📞 06 99 16 37 78; 06 11 50 35 70 / ✉️ motoclubdesoliviers@gmail.com; vliotaud@yahoo.fr", "Nom": "Moto Club des Oliviers", "Adresse": "39 rue Camille Bréchet, 26110 Nyons", "Téléphone": "06 99 16 37 78; 06 11 50 35 70", "Email": "motoclubdesoliviers@gmail.com; vliotaud@yahoo.fr", "Site": NaN, "GPS_precision": "approx_centroid:nyons", "Page": 1}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "École Sportive de Boules Lyonnaises (ESBN)", "description": "Boules lyonnaises U9–U18, pratique scolaire. — Centre régional de boule sportive & pétanque, 125 rue Félix Maurent, 26110 Nyons — 📞 06 79 64 21 73 / ✉️ usbn.nyons@gmail.com", "Nom": "École Sportive de Boules Lyonnaises (ESBN)", "Adresse": "Centre régional de boule sportive & pétanque, 125 rue Félix Maurent, 26110 Nyons", "Téléphone": "06 79 64 21 73", "Email": "usbn.nyons@gmail.com", "Site": NaN, "GPS_precision": "approx_centroid:nyons", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Association Sportive Rallye Auto Nyonsaise", "description": "Accompagnement et suivi de pilotes rallye auto. — 105 impasse des Cannes, 26110 Nyons — 📞 06 08 06 67 37 / ✉️ cfarnier@aol.fr", "Nom": "Association Sportive Rallye Auto Nyonsaise", "Adresse": "105 impasse des Cannes, 26110 Nyons", "Téléphone": "06 08 06 67 37", "Email": "cfarnier@aol.fr", "Site": NaN, "GPS_precision": "approx_centroid:nyons", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Basket Club Nyonsais", "description": "École de basket, compétitions (départemental & régional). — Maison des Sports, 26 allée des Sports, 26110 Nyons — 📞 06 82 84 04 50 / ✉️ communications.nyonsbc@gmail.com", "Nom": "Basket Club Nyonsais", "Adresse": "Maison des Sports, 26 allée des Sports, 26110 Nyons", "Téléphone": "06 82 84 04 50", "Email": "communications.nyonsbc@gmail.com", "Site": "https://www.nyonsbasket.com", "GPS_precision": "exact_osm_visual", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [4.946, 44.308]}, "properties": {"name": "Club Alpin Français de Nyons", "description": "Rando, raquettes, canyoning, VTT, ski rando nordique. — 650 chemin de l’Argentière, 84820 Visan — 📞 06 88 78 30 13 / ✉️ peyrouse@free.fr", "Nom": "Club Alpin Français de Nyons", "Adresse": "650 chemin de l’Argentière, 84820 Visan", "Téléphone": "06 88 78 30 13", "Email": "peyrouse@free.fr", "Site": "http://cafavignon.ffcam.fr", "GPS_precision": "approx_centroid:visan", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Les Cyclotouristes Nyonsais", "description": "Sorties hebdomadaires, Randonnées des Oliviers, séjours. — Nyons & environs — 📞 07 70 00 83 95 / ✉️ paulvanliebergen@gmail.com", "Nom": "Les Cyclotouristes Nyonsais", "Adresse": "Nyons & environs", "Téléphone": "07 70 00 83 95", "Email": "paulvanliebergen@gmail.com", "Site": "https://cyclosnyonsais.wixsite.com/accueil", "GPS_precision": "approx_centroid:nyons", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "École des Jeunes Sapeurs Pompiers", "description": "Formation incendie, secours aux personnes, activités sportives. — Centre de secours, 495 rue Claude Floret, 26110 Nyons — 📞 06 82 05 74 20 / ✉️ baptiste.jutge@sdis26.fr", "Nom": "École des Jeunes Sapeurs Pompiers", "Adresse": "Centre de secours, 495 rue Claude Floret, 26110 Nyons", "Téléphone": "06 82 05 74 20", "Email": "baptiste.jutge@sdis26.fr", "Site": NaN, "GPS_precision": "approx_centroid:nyons", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Karaté Shotokan Club de Nyons", "description": "Karaté : cours, compétitions, stages. — Maison des Sports / Île Verte, 26110 Nyons — 📞 06 79 81 85 79 / ✉️ kscnyons26@gmail.com", "Nom": "Karaté Shotokan Club de Nyons", "Adresse": "Maison des Sports / Île Verte, 26110 Nyons", "Téléphone": "06 79 81 85 79", "Email": "kscnyons26@gmail.com", "Site": "http://kscnyons.blogspot.com", "GPS_precision": "exact_osm_visual", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "L’Étincelle", "description": "Hatha Yoga. — Maison des Sports, 26 allée des Sports, 26110 Nyons — 📞 04 75 26 16 20; 07 86 67 22 03", "Nom": "L’Étincelle", "Adresse": "Maison des Sports, 26 allée des Sports, 26110 Nyons", "Téléphone": "04 75 26 16 20; 07 86 67 22 03", "Email": NaN, "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 2}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.367, 44.433]}, "properties": {"name": "La Gaule de l'Eygues et de l'Oule", "description": "Association de pêche, gestion et protection des milieux aquatiques. — La Combe, 26510 Rémuzat — 📞 06 83 21 94 59 / ✉️ aappmagauledeleyguesetdeloule@gmail.com; o.salin@orange.fr", "Nom": "La Gaule de l'Eygues et de l'Oule", "Adresse": "La Combe, 26510 Rémuzat", "Téléphone": "06 83 21 94 59", "Email": "aappmagauledeleyguesetdeloule@gmail.com; o.salin@orange.fr", "Site": "gauledeleygues.canalblog.com; Facebook", "GPS_precision": "approx_centroid:rémuzat", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1313, 44.35705]}, "properties": {"name": "L'Ile Verte - Bulle d'Oxygène", "description": "Cours collectifs, forme & bien-être. — 1 avenue Frédéric Mistral, 26110 Nyons — 📞 06 83 84 76 69 / ✉️ ileverte.sport@gmail.com", "Nom": "L'Ile Verte - Bulle d'Oxygène", "Adresse": "1 avenue Frédéric Mistral, 26110 Nyons", "Téléphone": "06 83 84 76 69", "Email": "ileverte.sport@gmail.com", "Site": "www.ile-verte.fr; Facebook", "GPS_precision": "exact_osm_visual", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.14032, 44.35895]}, "properties": {"name": "Les Ailes des Baronnies", "description": "Vol libre, biplaces associatifs, rencontres autour du 1er avril. — 122 promenade de la Digue, 26110 Nyons — 📞 06 63 23 84 83 / ✉️ ailesdesbaronnies@gmail.com", "Nom": "Les Ailes des Baronnies", "Adresse": "122 promenade de la Digue, 26110 Nyons", "Téléphone": "06 63 23 84 83", "Email": "ailesdesbaronnies@gmail.com", "Site": "ailesdesbaronnies.fr; Facebook", "GPS_precision": "exact_osm_visual", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13548, 44.3547]}, "properties": {"name": "Nyons Football Club", "description": "École de foot (U6→Seniors), District Grand Vaucluse. — Stade Pierre Jullien, Route de Mirabel, 26110 Nyons — 📞 06 40 58 86 75 / ✉️ nyonsfoot@gmail.com", "Nom": "Nyons Football Club", "Adresse": "Stade Pierre Jullien, Route de Mirabel, 26110 Nyons", "Téléphone": "06 40 58 86 75", "Email": "nyonsfoot@gmail.com", "Site": "Facebook", "GPS_precision": "exact_osm_visual", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1498, 44.3556]}, "properties": {"name": "Nyons Pétanque", "description": "Pétanque & jeu provençal. — Centre régional boules & pétanque, 125 rue Félix Maurent, 26110 Nyons — 📞 06 70 42 19 21 / ✉️ cl26-3007@francepetanque.com", "Nom": "Nyons Pétanque", "Adresse": "Centre régional boules & pétanque, 125 rue Félix Maurent, 26110 Nyons", "Téléphone": "06 70 42 19 21", "Email": "cl26-3007@francepetanque.com", "Site": "www.nyons-petanque.com; Facebook", "GPS_precision": "exact_osm_visual", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Ski Club Nyonsais", "description": "Ski & surf : sorties et séjours (Joue du Loup, Puy St-Vincent, 3 Vallées). — Nyons — 📞 06 82 86 09 12 / ✉️ ski-club-nyonsais@orange.fr", "Nom": "Ski Club Nyonsais", "Adresse": "Nyons", "Téléphone": "06 82 86 09 12", "Email": "ski-club-nyonsais@orange.fr", "Site": "skiclubnyonsais.fr; Facebook", "GPS_precision": "approx_centroid:nyons", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1414, 44.3701]}, "properties": {"name": "Société Nyonsaise de Tir", "description": "Tir sportif (stand du Pontias). — Col du Pontias, 26110 Nyons — 📞 06 84 22 65 44 / ✉️ alain.bertona@wanadoo.fr", "Nom": "Société Nyonsaise de Tir", "Adresse": "Col du Pontias, 26110 Nyons", "Téléphone": "06 84 22 65 44", "Email": "alain.bertona@wanadoo.fr", "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.14032, 44.35895]}, "properties": {"name": "Tennis Club de Nyons", "description": "Tennis & padel, tournois, équipes. — Promenade de la Digue, 26110 Nyons — ✉️ contact@tcnyons.fr", "Nom": "Tennis Club de Nyons", "Adresse": "Promenade de la Digue, 26110 Nyons", "Téléphone": NaN, "Email": "contact@tcnyons.fr", "Site": "tcnyons.fr; Facebook", "GPS_precision": "exact_osm_visual", "Page": 3}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1498, 44.3556]}, "properties": {"name": "Union Sportive Bouliste Nyonsaise (USBN)", "description": "Boules lyonnaises, découverte & compétitions. — Centre régional boules & pétanque, 125 rue Félix Maurent, 26110 Nyons — 📞 06 32 54 29 12 / ✉️ usbn.nyons@gmail.com", "Nom": "Union Sportive Bouliste Nyonsaise (USBN)", "Adresse": "Centre régional boules & pétanque, 125 rue Félix Maurent, 26110 Nyons", "Téléphone": "06 32 54 29 12", "Email": "usbn.nyons@gmail.com", "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Vélo Club Nyonsais", "description": "Vélo route & VTT. — Nyons — 📞 06 76 99 78 40 / ✉️ vcn26@orange.fr", "Nom": "Vélo Club Nyonsais", "Adresse": "Nyons", "Téléphone": "06 76 99 78 40", "Email": "vcn26@orange.fr", "Site": "veloclubnyons.canalblog.com", "GPS_precision": "approx_centroid:nyons", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Volley Club de l'Eygues", "description": "Volley loisir & compétitions locales. — Gymnase de la Cité Scolaire, 26110 Nyons — 📞 06 70 26 24 52; 04 75 26 33 62 / ✉️ dgalland26@orange.fr; morin.daniel26110@gmail.com", "Nom": "Volley Club de l'Eygues", "Adresse": "Gymnase de la Cité Scolaire, 26110 Nyons", "Téléphone": "06 70 26 24 52; 04 75 26 33 62", "Email": "dgalland26@orange.fr; morin.daniel26110@gmail.com", "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1313, 44.35705]}, "properties": {"name": "Le Zen (Judo)", "description": "Judo (loisir & compétition). — Île Verte, 1 av. Frédéric Mistral, 26110 Nyons — 📞 06 75 39 00 66 / ✉️ lezen.judo@gmail.com", "Nom": "Le Zen (Judo)", "Adresse": "Île Verte, 1 av. Frédéric Mistral, 26110 Nyons", "Téléphone": "06 75 39 00 66", "Email": "lezen.judo@gmail.com", "Site": "www.ile-verte.fr", "GPS_precision": "exact_osm_visual", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Baronnies Budo Wa-Jutsu Club de Nyons", "description": "Wa-Jutsu (ju-jutsu traditionnel) non compétitif. — Gymnase de la Cité Scolaire, 26110 Nyons — 📞 06 23 28 73 57 / ✉️ wajutsu.nyons@gmail.com", "Nom": "Baronnies Budo Wa-Jutsu Club de Nyons", "Adresse": "Gymnase de la Cité Scolaire, 26110 Nyons", "Téléphone": "06 23 28 73 57", "Email": "wajutsu.nyons@gmail.com", "Site": "Facebook", "GPS_precision": "approx_centroid:nyons", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Lei Caminaïre en Baronnies", "description": "Randonnée, marche nordique, séjours; parfois raquettes. — 116 rue des Baronnies, 26110 Nyons — 📞 04 75 26 01 25; 06 71 37 44 90 / ✉️ caminaire.nyons@gmail.com", "Nom": "Lei Caminaïre en Baronnies", "Adresse": "116 rue des Baronnies, 26110 Nyons", "Téléphone": "04 75 26 01 25; 06 71 37 44 90", "Email": "caminaire.nyons@gmail.com", "Site": "leicaminaire-en-baronnies.fr", "GPS_precision": "approx_centroid:nyons", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Courir à Nyons", "description": "Course à pied, trail, marche nordique. — Nyons — 📞 06 87 68 38 51 / ✉️ couriranyons@gmail.com", "Nom": "Courir à Nyons", "Adresse": "Nyons", "Téléphone": "06 87 68 38 51", "Email": "couriranyons@gmail.com", "Site": "www.couriranyons.fr; Facebook", "GPS_precision": "approx_centroid:nyons", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Associations Sportives du Collège Barjavel et du Lycée Roumanille (UNSS)", "description": "UNSS : entretien, escalade, badminton, VTT, hand, basket, volley, tennis de table. — Gymnases de la Cité Scolaire & Maison des Sports, 26110 Nyons — 📞 04 75 26 51 00", "Nom": "Associations Sportives du Collège Barjavel et du Lycée Roumanille (UNSS)", "Adresse": "Gymnases de la Cité Scolaire & Maison des Sports, 26110 Nyons", "Téléphone": "04 75 26 51 00", "Email": NaN, "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 4}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Bad Nyons", "description": "Badminton loisir. — Maison des Sports, 26 allée des Sports, 26110 Nyons — 📞 06 84 61 19 03 / ✉️ badnyons@gmail.com", "Nom": "Bad Nyons", "Adresse": "Maison des Sports, 26 allée des Sports, 26110 Nyons", "Téléphone": "06 84 61 19 03", "Email": "badnyons@gmail.com", "Site": "Facebook", "GPS_precision": "exact_osm_visual", "Page": 5}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Sport Évasion", "description": "Vélo/VAE, marche nordique, rando, escalade, canyon, canoë-kayak; entretien physique. — Le Camp de Base, 25 av. Henri Rochier, 26110 Nyons — 📞 06 14 82 49 74 / ✉️ sportsevasion26@yahoo.fr", "Nom": "Sport Évasion", "Adresse": "Le Camp de Base, 25 av. Henri Rochier, 26110 Nyons", "Téléphone": "06 14 82 49 74", "Email": "sportsevasion26@yahoo.fr", "Site": "ecyclo.fr; Facebook", "GPS_precision": "approx_centroid:nyons", "Page": 5}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13333, 44.36667]}, "properties": {"name": "Shiatsu-Antei Do", "description": "Pratique et promotion du Shiatsu. — 52 bis rue des Antignans, 26110 Nyons — 📞 06 75 81 90 79 / ✉️ shiatsuanteido@gmail.com", "Nom": "Shiatsu-Antei Do", "Adresse": "52 bis rue des Antignans, 26110 Nyons", "Téléphone": "06 75 81 90 79", "Email": "shiatsuanteido@gmail.com", "Site": NaN, "GPS_precision": "approx_centroid:nyons", "Page": 5}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1313, 44.35705]}, "properties": {"name": "Krav Maga des Baronnies", "description": "Self-défense (krav maga). — Île Verte (Nyons) & Salle polyvalente (Venterol) — 📞 07 61 60 67 34 / ✉️ morgan.caillet@yahoo.fr", "Nom": "Krav Maga des Baronnies", "Adresse": "Île Verte (Nyons) & Salle polyvalente (Venterol)", "Téléphone": "07 61 60 67 34", "Email": "morgan.caillet@yahoo.fr", "Site": "Facebook", "GPS_precision": "exact_osm_visual", "Page": 5}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Baronnies Défense Urbaine", "description": "Self-défense mêlant divers sports de combat et arts martiaux. — Salle Polyvalente d'Aubres ; Maison des Sports (Nyons) — 📞 06 29 16 26 22 / ✉️ bdu26110@gmail.com", "Nom": "Baronnies Défense Urbaine", "Adresse": "Salle Polyvalente d'Aubres ; Maison des Sports (Nyons)", "Téléphone": "06 29 16 26 22", "Email": "bdu26110@gmail.com", "Site": "Facebook", "GPS_precision": "exact_osm_visual", "Page": 5}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.13528, 44.3575]}, "properties": {"name": "Hapkido Nyons (HKDN)", "description": "Art martial orienté autodéfense. — Maison des Sports, 26 allée des Sports, 26110 Nyons — 📞 06 80 00 70 80 / ✉️ hapkido.nyons@icloud.com", "Nom": "Hapkido Nyons (HKDN)", "Adresse": "Maison des Sports, 26 allée des Sports, 26110 Nyons", "Téléphone": "06 80 00 70 80", "Email": "hapkido.nyons@icloud.com", "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 5}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1313, 44.35705]}, "properties": {"name": "Akwamouv' Club", "description": "Activités aquatiques, remise en forme. — Nyons", "Nom": "Akwamouv' Club", "Adresse": "Nyons", "Téléphone": NaN, "Email": NaN, "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 5}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [5.1313, 44.35705]}, "properties": {"name": "Envy Sport Drôme - Pilates - Yoga Iyengar - Air Boxe Self Defense", "description": "Pilates, Yoga Iyengar, Air Boxe, Self Defense. — Nyons", "Nom": "Envy Sport Drôme - Pilates - Yoga Iyengar - Air Boxe Self Defense", "Adresse": "Nyons", "Téléphone": NaN, "Email": NaN, "Site": NaN, "GPS_precision": "exact_osm_visual", "Page": 5}}]};
+
+  // --- Catégorisation par expressions régulières ---
+  function categoryFor(p) {
+    const t = (p.Nom + ' ' + (p.description||'') + ' ' + (p.Adresse||'') + ' ' + (p.Site||'')).toLowerCase();
+    const rules = [
+      ["Arts martiaux", /(a[iï]kido|karat[eé]|judo|krav|wa-?jutsu|budo|hapkido)/],
+      ["Sports de raquette", /(tennis|padel|badminton)/],
+      ["Boules / Pétanque", /(p[ée]tanque|boule|boulist)/],
+      ["Basket-ball", /basket/],
+      ["Volley-ball", /volley/],
+      ["Football", /(football|\bfc\b|foot\b)/],
+      ["Tir sportif", /\btir\b|pontias|stand/],
+      ["Ski / Neige", /\bsk[iy]\b|station|neige|puy|joue du loup/],
+      ["Cyclo / VTT", /(\bvt+t?\b|cyclo|v[ée]lo)/],
+      ["Course / Rando", /(trail|course|courir|randonn[ée]e|marche nordique)/],
+      ["Bien-être", /(yoga|pilates|shiatsu|forme|bulle d'oxyg[eè]ne)/],
+      ["Sport auto / moto", /(rallye|moto|enduro|trial)/],
+      ["Pêche", /(aappma|p[êe]che|eygues|oule)/],
+      ["Aérien", /(vol libre|parapente|ailes)/],
+      ["Multi-activités", /(sport [eé]vasion|multi|unss)/]
+    ];
+    for (const [label, re] of rules) {
+      if (re.test(t)) return label;
+    }
+    return "Autres";
+  }
+
+  // --- Couleurs & icônes par catégorie (AwesomeMarkers + Font Awesome) ---
+  const catStyles = {
+    "Arts martiaux":      { color:"red",        icon:"user-ninja" },
+    "Sports de raquette": { color:"blue",       icon:"table-tennis-paddle-ball" },
+    "Boules / Pétanque":  { color:"darkpurple", icon:"circle" },
+    "Basket-ball":        { color:"orange",     icon:"basketball" },
+    "Volley-ball":        { color:"orange",     icon:"volleyball" },
+    "Football":           { color:"green",      icon:"futbol" },
+    "Tir sportif":        { color:"purple",     icon:"bullseye" },
+    "Ski / Neige":        { color:"cadetblue",  icon:"snowflake" },
+    "Cyclo / VTT":        { color:"darkgreen",  icon:"bicycle" },
+    "Course / Rando":     { color:"green",      icon:"person-running" },
+    "Bien-être":          { color:"darkred",    icon:"leaf" },
+    "Sport auto / moto":  { color:"black",      icon:"motorcycle" },
+    "Pêche":              { color:"cadetblue",  icon:"fish" },
+    "Aérien":             { color:"purple",     icon:"wind" },
+    "Multi-activités":    { color:"blue",       icon:"star" },
+    "Autres":             { color:"gray",       icon:"map-marker-alt" }
+  };
+
+  function iconForCategory(cat) {
+    const s = catStyles[cat] || catStyles["Autres"];
+    return L.AwesomeMarkers.icon({
+      icon: s.icon,
+      prefix: 'fa',
+      markerColor: s.color,
+      extraClasses: 'fa-fw'
+    });
+  }
+
+  // --- Popup propre (avec "Non fourni" quand il manque des infos) ---
+  function buildDesc(p) {
+    let base = (p.description || '').trim();
+    base = base
+      .replace(/Passez voir une séance[^.]*\.?/gi, '')
+      .replace(/On en parle au bord du terrain[^.]*\.?/gi, '')
+      .replace(/Le plus simple\s*\?[^.]*\.?/gi, '')
+      .replace(/Ambiance simple, sérieuse[^.]*\.?/gi, '')
+      .trim();
+    if (!base) {
+      base = 'Entraînements et pratique selon niveaux — infos ci-dessous.';
+    }
+    return base;
+  }
+
+  function popupHtml(p) {
+    const telVal = (p["Téléphone"] && p["Téléphone"].toString().trim()) ? p["Téléphone"].toString().trim() : "Non fourni";
+    const mailVal = (p.Email && p.Email.toString().trim()) ? p.Email.toString().trim() : "Non fourni";
+    const siteVal = (p.Site && p.Site.toString().trim()) ? p.Site.toString().trim() : "Non fourni";
+    const adr = p.Adresse ? `<div>📍 ${p.Adresse}</div>` : "";
+    const desc = buildDesc(p);
+    const siteLinks = siteVal !== "Non fourni"
+      ? siteVal.split(';').map(u => u.trim()).filter(Boolean).map(u => `<a target="_blank" href="${u.startsWith('http')?u:'https://'+u}">${u}</a>`).join(' &middot; ')
+      : "Non fourni";
+    return `<div><strong>${p.name || p.Nom || 'Sans nom'}</strong>
+      <div style="margin:6px 0;">${desc}</div>
+      ${adr}
+      <div>📞 ${telVal}</div>
+      <div>✉️ ${mailVal}</div>
+      <div>🌐 ${siteLinks}</div>
+    </div>`;
+  }
+
+  // --- Construction de la carte ---
+  const map = L.map('map');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+
+  const cluster = L.markerClusterGroup({
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    disableClusteringAtZoom: 18,
+    maxClusterRadius: 50
+  });
+  map.addLayer(cluster);
+
+  // Build all markers with categories
+  const ALL = data.features.map(f => {
+    const p = f.properties;
+    const coords = f.geometry.coordinates;
+    const latlng = [coords[1], coords[0]];
+    const cat = categoryFor(p);
+    const m = L.marker(latlng, { icon: iconForCategory(cat) });
+    m._props = p;
+    m._cat = cat;
+    m.bindPopup(popupHtml(p));
+    return m;
+  });
+
+  // --- Filtres catégories dynamiques + légende ---
+  const cats = [...new Set(ALL.map(m => m._cat))].sort();
+  const filtersEl = document.getElementById('filters');
+  const legendEl = document.getElementById('legend');
+  const state = {};
+  cats.forEach(cat => {
+    state[cat] = true;
+    // checkbox
+    const id = 'f-' + cat.replace(/[^a-z0-9]+/gi,'-');
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.className='cat'; cb.id=id; cb.value=cat; cb.checked=true;
+    const lb = document.createElement('label'); lb.htmlFor=id; lb.textContent=cat;
+    const wrap = document.createElement('span'); wrap.appendChild(cb); wrap.appendChild(document.createTextNode(' ')); wrap.appendChild(lb);
+    filtersEl.appendChild(wrap);
+    // legend dot
+    const item = document.createElement('div'); item.className='item';
+    const dot = document.createElement('span'); dot.className='marker-dot';
+    const color = (catStyles[cat]||catStyles["Autres"]).color;
+    const colorsMap = {red:'#d33', darkred:'#991b1b', orange:'#ea580c', green:'#16a34a', darkgreen:'#166534', blue:'#2563eb', purple:'#7c3aed', darkpurple:'#5b21b6', cadetblue:'#2dd4bf', black:'#111827', gray:'#6b7280'};
+    dot.style.background = colorsMap[color] || '#6b7280';
+    item.appendChild(dot);
+    const lab = document.createElement('span'); lab.textContent = ' ' + cat;
+    item.appendChild(lab);
+    legendEl.appendChild(item);
+  });
+
+  function draw() {
+    cluster.clearLayers();
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const active = new Set(
+      Array.from(document.querySelectorAll('#filters input.cat:checked')).map(x => x.value)
+    );
+    const filt = ALL.filter(m => {
+      const p = m._props;
+      const hay = (p.name + ' ' + (p.Nom||'') + ' ' + (p.description||'') + ' ' + (p.Adresse||'') + ' ' + (p["Téléphone"]||'') + ' ' + (p.Email||'')).toLowerCase();
+      const okQ = !q || hay.includes(q);
+      const okC = active.has(m._cat);
+      return okQ && okC;
+    });
+    filt.forEach(m => cluster.addLayer(m));
+    try { map.fitBounds(cluster.getBounds().pad(0.1)); } catch(e) {}
+    document.getElementById('count').textContent = filt.length + ' résultat(s)';
+  }
+
+  document.getElementById('search').addEventListener('input', draw);
+  document.querySelectorAll('#filters input.cat').forEach(cb => cb.addEventListener('change', draw));
+
+  draw();
+  </script>
+</body>
+</html>
